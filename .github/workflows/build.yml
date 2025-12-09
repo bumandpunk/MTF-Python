@@ -13,10 +13,10 @@ jobs:
     
     steps:
     - name: 检出代码
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: 设置Python环境
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
     
@@ -31,7 +31,7 @@ jobs:
         pyinstaller --name "MTF清晰度评估工具" --onefile --windowed mtf_gui.py
     
     - name: 上传构建产物
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: MTF-Windows
         path: dist/MTF清晰度评估工具.exe
@@ -42,10 +42,10 @@ jobs:
     
     steps:
     - name: 检出代码
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: 设置Python环境
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
     
@@ -60,7 +60,7 @@ jobs:
         pyinstaller --name "MTF清晰度评估工具" --onefile --windowed mtf_gui.py
     
     - name: 上传构建产物
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: MTF-macOS
         path: dist/MTF清晰度评估工具
@@ -73,19 +73,19 @@ jobs:
     
     steps:
     - name: 下载Windows版本
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: MTF-Windows
         path: ./windows
     
     - name: 下载macOS版本
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: MTF-macOS
         path: ./macos
     
     - name: 创建Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           ./windows/MTF清晰度评估工具.exe
