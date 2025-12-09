@@ -35,20 +35,59 @@ class MTFSharpnessEvaluator:
         self.frequencies = None
         
     def load_image(self):
-        """加载并预处理图像"""
+        """加载并预处理图像（使用PIL以支持打包后的环境）"""
         if not os.path.exists(self.image_path):
             raise FileNotFoundError(f"图像文件不存在: {self.image_path}")
         
-        # 读取图像
-        self.image = cv2.imread(self.image_path)
-        if self.image is None:
-            raise ValueError(f"无法读取图像: {self.image_path}")
-        
-        # 转换为灰度图
-        if len(self.image.shape) == 3:
-            self.gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        else:
-            self.gray = self.image.copy()
+        try:
+            # 优先使用PIL读取（打包后更可靠）
+            pil_image = Image.open(self.image_path)
+            
+            # 转换为numpy数组
+            self.image = np.array(pil_image)
+            
+            # 处理不同的图像模式
+            if pil_image.mode == 'L':
+                # 灰度图
+                self.gray = self.image.copy()
+            elif pil_image.mode == 'RGB':
+                # RGB转灰度
+                self.gray = np.dot(self.image[...,:3], [0.299, 0.587, 0.114]).astype(np.uint8)
+            elif pil_image.mode == 'RGBA':
+                # RGBA转灰度（忽略alpha通道）
+                self.gray = np.dot(self.image[...,:3], [0.299, 0.587, 0.114]).astype(np.uint8)
+            elif pil_image.mode == 'P':
+                # 调色板模式，转换为RGB再转灰度
+                pil_image = pil_image.convert('RGB')
+                self.image = np.array(pil_image)
+                self.gray = np.dot(self.image[...,:3], [0.299, 0.587, 0.114]).astype(np.uint8)
+            elif pil_image.mode == '1':
+                # 二值图像
+                self.gray = (self.image * 255).astype(np.uint8)
+            else:
+                # 其他模式，尝试转换为RGB再转灰度
+                pil_image = pil_image.convert('RGB')
+                self.image = np.array(pil_image)
+                self.gray = np.dot(self.image[...,:3], [0.299, 0.587, 0.114]).astype(np.uint8)
+            
+            # 确保gray是uint8类型
+            if self.gray.dtype != np.uint8:
+                self.gray = self.gray.astype(np.uint8)
+                
+        except Exception as e:
+            # 如果PIL失败，尝试cv2（开发环境可能可用）
+            try:
+                self.image = cv2.imread(self.image_path)
+                if self.image is None:
+                    raise ValueError(f"无法读取图像: {self.image_path}")
+                
+                # 转换为灰度图
+                if len(self.image.shape) == 3:
+                    self.gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+                else:
+                    self.gray = self.image.copy()
+            except:
+                raise ValueError(f"无法读取图像 (PIL和cv2均失败): {self.image_path}\n原始错误: {str(e)}")
         
         return self.gray
     
