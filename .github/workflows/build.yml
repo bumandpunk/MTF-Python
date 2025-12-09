@@ -28,7 +28,7 @@ jobs:
     
     - name: 打包应用程序
       run: |
-        pyinstaller --name "MTF清晰度评估工具" --onefile --windowed mtf_gui.py
+        pyinstaller mtf_gui_windows.spec
     
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
@@ -57,13 +57,23 @@ jobs:
     
     - name: 打包应用程序
       run: |
-        pyinstaller --name "MTF清晰度评估工具" --onefile --windowed mtf_gui.py
+        # 创建.app bundle（不是单文件，这样才能正确隐藏终端）
+        pyinstaller --name "MTF清晰度评估工具" \
+          --windowed \
+          --icon=NONE \
+          --osx-bundle-identifier "com.mtf.sharpness" \
+          mtf_gui.py
+        
+        # 压缩.app为zip（方便下载）
+        cd dist
+        zip -r MTF清晰度评估工具.app.zip MTF清晰度评估工具.app
+        cd ..
     
     - name: 上传构建产物
       uses: actions/upload-artifact@v4
       with:
         name: MTF-macOS
-        path: dist/MTF清晰度评估工具
+        path: dist/MTF清晰度评估工具.app.zip
 
   create-release:
     name: 创建发布
@@ -89,7 +99,7 @@ jobs:
       with:
         files: |
           ./windows/MTF清晰度评估工具.exe
-          ./macos/MTF清晰度评估工具
+          ./macos/MTF清晰度评估工具.app.zip
         draft: false
         prerelease: false
       env:
