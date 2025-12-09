@@ -225,8 +225,14 @@ class MTFApp:
         self.update_progress(50)
         
         try:
+            self.update_result(f"正在加载图像: {os.path.basename(self.current_path)}\n")
+            
             evaluator = MTFSharpnessEvaluator(self.current_path)
             evaluator.load_image()
+            
+            self.update_result(f"图像加载成功，尺寸: {evaluator.gray.shape}\n")
+            self.update_result("正在计算MTF...\n")
+            
             results = evaluator.compute_mtf_sharpness()
             
             filename = os.path.basename(self.current_path)
@@ -268,7 +274,19 @@ MTF10: {results['mtf10']:.6f} cycles/pixel
             self.root.after(0, lambda: self.export_btn.config(state=tk.NORMAL))
             
         except Exception as e:
-            self.update_result(f"评估失败: {str(e)}")
+            import traceback
+            error_detail = traceback.format_exc()
+            self.update_result(f"\n{'='*70}\n")
+            self.update_result(f"❌ 评估失败\n")
+            self.update_result(f"{'='*70}\n\n")
+            self.update_result(f"错误信息: {str(e)}\n\n")
+            self.update_result(f"详细错误:\n{error_detail}\n")
+            self.update_result(f"{'='*70}\n\n")
+            self.update_result(f"可能的原因:\n")
+            self.update_result(f"1. 图像不是标准的MTF测试卡（需要清晰的黑白边缘）\n")
+            self.update_result(f"2. 图像过于模糊，无法检测到有效边缘\n")
+            self.update_result(f"3. 图像文件损坏或格式不支持\n")
+            self.update_result(f"4. 图像尺寸过小（建议至少200x200像素）\n")
     
     def evaluate_folder(self):
         """评估文件夹中的所有图片"""
@@ -312,7 +330,7 @@ MTF10: {results['mtf10']:.6f} cycles/pixel
                 self.update_progress(int(i * 100 / total))
                 
             except Exception as e:
-                self.update_result(f"✗ {filename}: 失败 - {str(e)}\n")
+                self.update_result(f"✗ {filename}: 失败 - {str(e)[:100]}...\n")
         
         # 显示统计
         self.show_statistics()
@@ -403,7 +421,25 @@ MTF10: {results['mtf10']:.6f} cycles/pixel
 
 def main():
     root = tk.Tk()
+    
+    # macOS专用：强制窗口显示在最前面
+    root.lift()
+    root.attributes('-topmost', True)
+    root.after_idle(root.attributes, '-topmost', False)
+    
+    # 确保窗口居中显示
+    root.update_idletasks()
+    width = root.winfo_width()
+    height = root.winfo_height()
+    x = (root.winfo_screenwidth() // 2) - (width // 2)
+    y = (root.winfo_screenheight() // 2) - (height // 2)
+    root.geometry(f'{width}x{height}+{x}+{y}')
+    
     app = MTFApp(root)
+    
+    # macOS：激活应用
+    root.focus_force()
+    
     root.mainloop()
 
 
