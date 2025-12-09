@@ -14,6 +14,7 @@ import glob
 from pathlib import Path
 from scipy import signal, ndimage
 from numpy.fft import fft, fftfreq
+from PIL import Image
 
 
 class MTFSharpnessEvaluator:
