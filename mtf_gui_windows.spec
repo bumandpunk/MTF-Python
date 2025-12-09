@@ -18,6 +18,17 @@ a = Analysis(
         'tkinter.filedialog',
         'tkinter.messagebox',
         
+        # PIL/Pillow相关（关键！用于图像读取）
+        'PIL',
+        'PIL.Image',
+        'PIL.ImageTk',
+        'PIL.ImageDraw',
+        'PIL.ImageFont',
+        'PIL.BmpImagePlugin',  # BMP格式支持
+        'PIL.JpegImagePlugin', # JPEG格式支持
+        'PIL.PngImagePlugin',  # PNG格式支持
+        'PIL.TiffImagePlugin', # TIFF格式支持
+        
         # scipy完整导入
         'scipy',
         'scipy.signal',
@@ -50,14 +61,9 @@ a = Analysis(
         'numpy.fft',
         'numpy.random',
         
-        # opencv相关
+        # opencv相关（作为备用）
         'cv2',
         'cv2.cv2',
-        
-        # PIL相关
-        'PIL',
-        'PIL.Image',
-        'PIL.ImageTk',
         
         # 其他依赖
         'threading',
