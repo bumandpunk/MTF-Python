@@ -1,0 +1,96 @@
+name: 打包MTF应用程序
+
+on:
+  push:
+    tags:
+      - 'v*'  # 当推送v开头的tag时触发，如 v1.0.0
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build-windows:
+    name: 构建Windows版本
+    runs-on: windows-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+    
+    - name: 设置Python环境
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: 安装依赖
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: 打包应用程序
+      run: |
+        pyinstaller --name "MTF清晰度评估工具" --onefile --windowed mtf_gui.py
+    
+    - name: 上传构建产物
+      uses: actions/upload-artifact@v3
+      with:
+        name: MTF-Windows
+        path: dist/MTF清晰度评估工具.exe
+
+  build-macos:
+    name: 构建macOS版本
+    runs-on: macos-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+    
+    - name: 设置Python环境
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: 安装依赖
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: 打包应用程序
+      run: |
+        pyinstaller --name "MTF清晰度评估工具" --onefile --windowed mtf_gui.py
+    
+    - name: 上传构建产物
+      uses: actions/upload-artifact@v3
+      with:
+        name: MTF-macOS
+        path: dist/MTF清晰度评估工具
+
+  create-release:
+    name: 创建发布
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: 下载Windows版本
+      uses: actions/download-artifact@v3
+      with:
+        name: MTF-Windows
+        path: ./windows
+    
+    - name: 下载macOS版本
+      uses: actions/download-artifact@v3
+      with:
+        name: MTF-macOS
+        path: ./macos
+    
+    - name: 创建Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ./windows/MTF清晰度评估工具.exe
+          ./macos/MTF清晰度评估工具
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
